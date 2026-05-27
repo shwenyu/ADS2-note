@@ -16,6 +16,12 @@ Core principle:
 > **Response type + predictor type + study design + target claim = method.**  
 > Do not choose a test only because a familiar function name appears in memory.
 
+Bootstrap fallback principle:
+
+> **Bootstrap is allowed when the prompt blocks ordinary assumptions.**  
+> If the population distribution is unknown, clearly non-normal, the total population/sample is very small, observations are not independent, categories are non-mutually exclusive, or all standard tests require assumptions not supported by the question, consider bootstrap / simulation.  
+> Do **not** rescue a familiar test by adding hidden assumptions such as independence, mutual exclusivity, normality, or large-sample approximation.
+
 ---
 
 ## 1. Required output
@@ -59,6 +65,8 @@ Do not:
 8. treat sensitivity/specificity questions as ordinary hypothesis tests;
 9. write “increase sample size” as the default next step;
 10. report p-values without estimate, uncertainty, and contextual interpretation.
+11. assume independence, mutual exclusivity, normality, or adequate sample size unless the prompt supports it;
+12. reject bootstrap merely because another test is familiar — if other methods require unsupported assumptions, bootstrap can be the safer route.
 
 ---
 
@@ -111,6 +119,12 @@ Ask:
 ## 4. Core decision tree
 
 ~~~text
+0. Assumption gate:
+   If standard tests require assumptions the prompt does not justify
+   (normality, large sample, independent observations, mutually exclusive categories,
+   known population distribution), do not silently assume them.
+   → Consider bootstrap / simulation when no ordinary method is defensible.
+
 1. Is the task conditional probability / sensitivity / specificity / prevalence?
    → Bayes / mathematical probability, not a standard hypothesis test.
 
@@ -136,6 +150,17 @@ Ask:
 
 6. Is the task clustering or unsupervised grouping?
    → scale numeric variables, choose distance/algorithm, visualize, interpret as exploratory.
+
+7. Is every standard route blocked by unsupported assumptions?
+   Examples:
+   - unknown population distribution;
+   - clearly non-normal distribution;
+   - very small total population/sample;
+   - lack of independence;
+   - overlapping / repeated observations;
+   - non-mutually-exclusive categories.
+   → Use bootstrap / simulation as a fallback uncertainty route,
+     while clearly stating the resampling unit and limitation.
 ~~~
 
 ---
@@ -305,6 +330,9 @@ Use data structure to infer method:
 | count outcome with predictors | Poisson / NB-style route | assuming normality |
 | sensitivity/specificity/prevalence | Bayes theorem | confusing conditioning |
 | unknown sampling distribution | bootstrap / simulation | overclaiming parametric test |
+| non-normal distribution + small sample | bootstrap / simulation | pretending t-test / ANOVA assumptions are met |
+| very small population/sample with no valid distributional assumption | bootstrap / exact-style simulation | large-sample approximation |
+| lack of independence or overlapping categories | bootstrap / simulation if resampling unit is defensible | ordinary χ² / Fisher / prop.test with hidden independence assumption |
 | clustering requested | scaled clustering/PCA | causal claims |
 
 ---
@@ -320,6 +348,7 @@ Recommend only the minimum needed for the chosen method.
 | χ² GoF | observed vs expected table/bar plot | expected counts, mutually exclusive cells |
 | χ² independence | proportion bar plot | independence, expected counts |
 | bootstrap | bootstrap distribution / CI plot | correct resampling unit |
+| bootstrap fallback | bootstrap distribution + sensitivity to resampling unit | whether resampling preserves dependence / overlap structure |
 | regression | scatter + fitted line | linearity, residuals, influence, extrapolation |
 | Bayes | probability table/tree | conditioning direction |
 | clustering | PCA/pair plot | scaling, distance, cluster stability |
@@ -339,4 +368,6 @@ Before answering, check:
 - Did I flag Bayesian/probability questions separately from hypothesis tests?
 - Did I avoid endpoint-only trend estimation?
 - Did I state what method to avoid and why?
+- Did I avoid adding unsupported assumptions just to make a familiar method usable?
+- If ordinary tests are blocked, did I consider bootstrap / simulation and define the resampling unit?
 - Did I keep the output as triage, not a full Rmd answer?
